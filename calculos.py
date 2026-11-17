@@ -1,52 +1,46 @@
-from datetime import date
+# Módulo de cálculos y ventas para la droguería - Integrante 2: Fanny Zuleyka Martínez Lloreda
 
-# Descuento aplicado a medicamentos próximos a vencerse: 8 %.
+# Constante global para el descuento de medicamentos próximos a vencer
 DESCUENTO_VENCIMIENTO = 0.08
 
 
-def proximo_a_vencerse(mes_vencimiento, mes_actual=None):
-    """Devuelve True si el vencimiento está en los próximos tres meses.
-    Como el proyecto solo guarda el mes, se compara con los meses del calendario.
-    """
-    if mes_actual is None:
-        mes_actual = date.today().month
-
-    meses_proximos = [((mes_actual - 1 + i) % 12) + 1 for i in range(1, 4)]
-    return mes_vencimiento in meses_proximos
-
-
-def vender_medicamento(inventario, codigo, unidades, ventas_realizadas):
-    """Vende unidades si existen suficientes y devuelve el total de la venta."""
+# Recibe: inventario (dict), codigo (str), unidades_a_vender (int)
+# Devuelve: tupla (bool, str) indicando si la venta fue exitosa y descontada, o un mensaje de error si no hay stock.
+def vender_medicamento(inventario, codigo, unidades_a_vender):
+    """Descuenta unidades del inventario validando que exista stock suficiente."""
     codigo = str(codigo).strip()
-
+    
     if codigo not in inventario:
-        return False, "No se encontró un medicamento con ese código.", None
-
+        return False, "El medicamento no existe en el inventario."
+    
     try:
-        unidades = int(unidades)
-    except (ValueError, TypeError):
-        return False, "La cantidad debe ser un número entero.", None
+        unidades_a_vender = int(unidades_a_vender)
+    except ValueError:
+        return False, "La cantidad a vender debe ser un número entero."
+    
+    if unidades_a_vender <= 0:
+        return False, "La cantidad a vender debe ser mayor a cero."
+        
+    nombre, precio, unidades_disponibles, mes_vencimiento = inventario[codigo]
+    
+    if unidades_a_vender > unidades_disponibles:
+        return False, f"Stock insuficiente. Solo hay {unidades_disponibles} unidades disponibles."
+        
+    # Descuenta las unidades del inventario
+    inventario[codigo][2] -= unidades_a_vender
+    return True, f"Venta exitosa de {unidades_a_vender} unidad(es) de {nombre}."
 
-    if unidades <= 0:
-        return False, "La cantidad a vender debe ser mayor que cero.", None
 
-    medicamento = inventario[codigo]
-    if unidades > medicamento[2]:
-        return False, f"No hay suficientes unidades. Disponibles: {medicamento[2]}.", None
-
-    subtotal = medicamento[1] * unidades
-    descuento = 0
-
-    if proximo_a_vencerse(medicamento[3]):
+# Recibe: precio (float), unidades (int), mes_vencimiento (int), mes_actual (int)
+# Devuelve: float con el valor total a pagar aplicando el 8% de descuento si está próximo a vencer.
+def calcular_valor_venta(precio, unidades, mes_vencimiento, mes_actual):
+    """Calcula el costo total aplicando la constante de descuento si vence pronto."""
+    subtotal = precio * unidades
+    
+    # Si vence en el mes actual o en el siguiente, aplica la constante de descuento del 8%
+    if mes_vencimiento == mes_actual or mes_vencimiento == (mes_actual % 12) + 1:
         descuento = subtotal * DESCUENTO_VENCIMIENTO
-
-    total = subtotal - descuento
-    medicamento[2] -= unidades
-    ventas_realizadas[codigo] = ventas_realizadas.get(codigo, 0) + unidades
-
-    detalle = (
-        f"Subtotal: ${subtotal:,.2f}\n"
-        f"Descuento: ${descuento:,.2f}\n"
-        f"Total a pagar: ${total:,.2f}"
-    )
-    return True, detalle, total
+        total_con_descuento = subtotal - descuento
+        return total_con_descuento
+        
+    return subtota
