@@ -8,6 +8,8 @@ from busquedas import (
 from reportes import generar_informe, listar_todos
 from utilidades import validar_precio, validar_unidades, validar_mes
 
+VERSION = "2.0"
+
 
 def pedir_precio(mensaje):
     while True:
@@ -39,7 +41,7 @@ def pedir_mes():
 
 
 def mostrar_menu():
-    print("\\n" + "=" * 45)
+    print("\n" + "=" * 45)
     print("       SISTEMA DE INVENTARIO - DROGUERÍA")
     print("=" * 45)
     print("1. Registrar medicamento")
@@ -66,7 +68,7 @@ def main():
         opcion = input("Seleccione una opción: ").strip()
 
         if opcion == "1":
-            print("\\nREGISTRAR MEDICAMENTO")
+            print("\nREGISTRAR MEDICAMENTO")
             codigo = input("Código: ").strip()
             nombre = input("Nombre del medicamento: ").strip()
             precio = pedir_precio("Precio: $")
@@ -112,7 +114,7 @@ def main():
         elif opcion == "7":
             resultados = medicamentos_con_pocas_unidades(inventario)
             if resultados:
-                print("\\nMedicamentos con menos de diez unidades:")
+                print("\nMedicamentos con menos de diez unidades:")
                 for resultado in resultados:
                     print(resultado)
             else:
@@ -127,7 +129,7 @@ def main():
         elif opcion == "0":
             print("Gracias por utilizar el sistema de inventario de la droguería.")
             break
-        
+
         else:
             print("Opción no válida. Intente nuevamente.")
 
