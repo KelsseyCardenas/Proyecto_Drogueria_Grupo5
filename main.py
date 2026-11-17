@@ -82,6 +82,7 @@ def main():
             correcto, mensaje = retirar_medicamento(inventario, codigo)
             print(mensaje)
 
+        
         elif opcion == "3":
             codigo = input("Código del medicamento: ").strip()
             nuevo_precio = pedir_precio("Nuevo precio: $")
