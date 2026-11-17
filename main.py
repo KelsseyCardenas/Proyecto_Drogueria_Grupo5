@@ -127,7 +127,7 @@ def main():
         elif opcion == "0":
             print("Gracias por utilizar el sistema de inventario de la droguería.")
             break
-
+        
         else:
             print("Opción no válida. Intente nuevamente.")
 
