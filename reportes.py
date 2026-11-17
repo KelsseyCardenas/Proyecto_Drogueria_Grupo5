@@ -1,59 +1,63 @@
-from datetime import date
-from calculos import proximo_a_vencerse
-from utilidades import texto_medicamento
+# Módulo de reportes para la droguería - Integrante 4: Keyller Fabian Blandón Lozano
+
+# Recibe: inventario (dict)
+# Devuelve: float con el valor total monetario de todos los medicamentos en stock.
+def calcular_valor_inventario(inventario):
+    """Calcula el valor total del inventario multiplicando precio por unidades."""
+    total = 0.0
+    for datos in inventario.values():
+        precio = datos[1]
+        unidades = datos[2]
+        total += precio * unidades
+    return total
 
 
-def generar_informe(inventario, ventas_realizadas):
-    """Genera el informe general de la droguería."""
-    print("\\n" + "=" * 55)
-    print("          INFORME GENERAL DE LA DROGUERÍA")
-    print("=" * 55)
-
-    valor_total = sum(medicamento[1] * medicamento[2]
-                      for medicamento in inventario.values())
-    print(f"Valor total del inventario: ${valor_total:,.2f}")
-
-    print("\\nMedicamentos que vencen en los próximos tres meses:")
-    proximos = [
-        (codigo, medicamento)
-        for codigo, medicamento in inventario.items()
-        if proximo_a_vencerse(medicamento[3])
-    ]
-    if proximos:
-        for codigo, medicamento in proximos:
-            print("- " + texto_medicamento(codigo, medicamento))
-    else:
-        print("No hay medicamentos registrados con vencimiento en los próximos tres meses.")
-
-    print("\\nMedicamento más vendido:")
-    vendidos = [
-        (codigo, cantidad)
-        for codigo, cantidad in ventas_realizadas.items()
-        if codigo in inventario and cantidad > 0
-    ]
-    if vendidos:
-        codigo, cantidad = max(vendidos, key=lambda elemento: elemento[1])
-        print(f"{inventario[codigo][0]} (código {codigo}), unidades vendidas: {cantidad}")
-    elif ventas_realizadas:
-        print("Hay ventas registradas, pero los medicamentos vendidos ya fueron retirados del inventario.")
-    else:
-        print("Todavía no se han realizado ventas.")
-
-    print("\\nMedicamento más costoso:")
-    if inventario:
-        codigo, medicamento = max(inventario.items(), key=lambda elemento: elemento[1][1])
-        print(texto_medicamento(codigo, medicamento))
-    else:
-        print("El inventario está vacío.")
-
-    print("=" * 55)
+# Recibe: inventario (dict), mes_actual (int)
+# Devuelve: list con los datos de los medicamentos que vencen en los próximos 3 meses.
+def medicamentos_proximos_vencer(inventario, mes_actual):
+    """Identifica los medicamentos que se vencen en los próximos tres meses."""
+    por_vencer = []
+    for codigo, datos in inventario.items():
+        nombre = datos[0]
+        mes_vencimiento = datos[3]
+        # Calcula los próximos 3 meses manejando el ciclo de 12 meses
+        meses_limite = [(mes_actual + i - 1) % 12 + 1 for i in range(1, 4)]
+        if mes_vencimiento in meses_limite:
+            por_vencer.append((codigo, nombre, mes_vencimiento))
+    return por_vencer
 
 
-def listar_todos(inventario):
-    """Muestra todos los medicamentos registrados."""
-    print("\\nINVENTARIO COMPLETO")
+# Recibe: inventario (dict)
+# Devuelve: str con el nombre del medicamento más costoso o un mensaje si está vacío.
+def medicamento_mas_costoso(inventario):
+    """Encuentra el medicamento con el precio unitario más alto en el inventario."""
     if not inventario:
-        print("No hay medicamentos registrados.")
-        return
-    for codigo, medicamento in inventario.items():
-        print(texto_medicamento(codigo, medicamento))
+        return "No hay medicamentos registrados."
+    
+    mas_costoso = None
+    max_precio = -1
+    for datos in inventario.values():
+        nombre = datos[0]
+        precio = datos[1]
+        if precio > max_precio:
+            max_precio = precio
+            mas_costoso = nombre
+    return mas_costoso
+
+
+# Recibe: inventario (dict), mes_actual (int)
+# Devuelve: str con el informe formateado de la droguería para mostrar en pantalla de forma limpia.
+def generar_informe_general(inventario, mes_actual):
+    """Genera un informe completo y visualmente claro del estado actual de la droguería."""
+    valor_total = calcular_valor_inventario(inventario)
+    costoso = medicamento_mas_costoso(inventario)
+    vencimientos = medicamentos_proximos_vencer(inventario, mes_actual)
+    
+    informe = "\n" + "="*45 + "\n"
+    informe += "         INFORME GENERAL DE LA DROGUERÍA\n"
+    informe += "="*45 + "\n"
+    informe += f"💰 Valor total del inventario: ${valor_total:,.2f}\n"
+    informe += f"💎 Medicamento más costoso: {costoso}\n"
+    informe += f"⚠️ Próximos a vencer (3 meses): {len(vencimientos)} medicamento(s)\n"
+    informe += "="*45
+    return informe
